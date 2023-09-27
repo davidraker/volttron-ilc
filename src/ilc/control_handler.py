@@ -1,53 +1,36 @@
-"""
-Copyright (c) 2020, Battelle Memorial Institute
-All rights reserved.
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-The views and conclusions contained in the software and documentation are those
-of the authors and should not be interpreted as representing official policies,
-either expressed or implied, of the FreeBSD Project.
-This material was prepared as an account of work sponsored by an agency of the
-United States Government. Neither the United States Government nor the United
-States Department of Energy, nor Battelle, nor any of their employees, nor any
-jurisdiction or organization that has cooperated in th.e development of these
-materials, makes any warranty, express or implied, or assumes any legal
-liability or responsibility for the accuracy, completeness, or usefulness or
-any information, apparatus, product, software, or process disclosed, or
-represents that its use would not infringe privately owned rights.
-Reference herein to any specific commercial product, process, or service by
-trade name, trademark, manufacturer, or otherwise does not necessarily
-constitute or imply its endorsement, recommendation, or favoring by the
-United States Government or any agency thereof, or Battelle Memorial Institute.
-The views and opinions of authors expressed herein do not necessarily state or
-reflect those of the United States Government or any agency thereof.
+# -*- coding: utf-8 -*- {{{
+# ===----------------------------------------------------------------------===
+#
+#                 Installable Component of Eclipse VOLTTRON
+#
+# ===----------------------------------------------------------------------===
+#
+# Copyright 2022 Battelle Memorial Institute
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy
+# of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# ===----------------------------------------------------------------------===
+# }}}
 
-PACIFIC NORTHWEST NATIONAL LABORATORY
-operated by BATTELLE for the UNITED STATES DEPARTMENT OF ENERGY
-under Contract DE-AC05-76RL01830
-"""
+import logging
 
 from sympy import symbols
-import logging
 from sympy.parsing.sympy_parser import parse_expr
-from volttron.platform.agent.utils import setup_logging, format_timestamp, get_aware_utc_now
-from volttron.platform.messaging import topics, headers as headers_mod
 
-from .utils import parse_sympy, create_device_topic_map, fix_up_point_name
+from volttron.client.messaging import headers as headers_mod
+from volttron.utils import setup_logging, format_timestamp, get_aware_utc_now
+
+from ilc.utils import parse_sympy, create_device_topic_map, fix_up_point_name
 
 setup_logging()
 _log = logging.getLogger(__name__)
@@ -117,10 +100,10 @@ class ControlContainer(object):
 
 
 class DeviceStatus(object):
-    def __init__(self, logging_topic, parent, device_status_args=[], condition="", default_device=""):
+    def __init__(self, logging_topic, parent, device_status_args=None, condition="", default_device=""):
         self.current_device_values = {}
         #device_status_args = parse_sympy(device_status_args)
-        device_status_args = device_status_args
+        device_status_args = device_status_args if device_status_args else []
 
         self.device_topic_map, self.device_topics = create_device_topic_map(device_status_args, default_device)
 
@@ -279,7 +262,7 @@ class ControlManager(object):
 class ControlSetting(object):
     def __init__(self, logging_topic, parent, point=None, value=None, load=None, offset=None, maximum=None, minimum=None,
                  revert_priority=None, equation=None, control_method=None, control_mode="comfort",
-                 condition="", conditional_args=[], default_device=""):
+                 condition="", conditional_args=None, default_device=""):
         if control_method is None:
             raise ValueError("Missing 'control_method' configuration parameter!")
         if point is None:
@@ -338,14 +321,12 @@ class ControlSetting(object):
         else:
             self.load = load
 
-        # self.conditional_args = []
         self.conditional_expr = None
         self.conditional_control = None
         self.device_topic_map, self.device_topics = {}, set()
         self.current_device_values = {}
 
         if conditional_args and condition:
-            # self.conditional_args = parse_sympy(conditional_args)
             self.conditional_expr = parse_sympy(condition, condition=True)
             self.conditional_control = parse_expr(self.conditional_expr)
 
