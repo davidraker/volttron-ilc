@@ -1392,7 +1392,7 @@ class ILCAgent(Agent):
         self.vip.pubsub.publish("pubsub", topic, headers, message).get()
 
 
-def main(argv:type(sys.argv)):
+def main():
     """Main method called by the aip."""
     try:
         vip_main(ILCAgent)
@@ -1404,6 +1404,6 @@ def main(argv:type(sys.argv)):
 if __name__ == "__main__":
     # Entry point for script
     try:
-        sys.exit(main(sys.argv))
+        sys.exit(main())
     except KeyboardInterrupt:
         pass
