@@ -17,14 +17,14 @@ show_error_codes = true
 exclude = ['docs/']
 
 [tool.poetry]
-name = "volttron-app-intelligent-load-control"
+name = "volttron-ilc"
 version = "2.2.0"
 description = "ILC supports traditional demand response as well as transactive energy services. ILC manages controllable loads while also mitigating service-level excursions (e.g., occupant comfort, minimizing equipment ON/OFF cycling) by dynamically prioritizing available loads for curtailment using both quantitative (deviation of zone conditions from set point) and qualitative rules (type of zone).IXME"
 authors = ["Robert Lutes <robert.lutes@pnnl.gov>"]
 license = "Apache License 2.0"
 readme = "README.md"
-repository = "https://github.com/eclipse-volttron/volttron-app-intelligent-load-control"
-homepage = "https://github.com/eclipse-volttron/volttron-app-intelligent-load-control"
+repository = "https://github.com/eclipse-volttron/volttron-ilc"
+homepage = "https://github.com/eclipse-volttron/volttron-ilc"
 keywords = []
 packages = [ { include = "ilc", from = "src" } ]
 classifiers = [
@@ -60,7 +60,7 @@ Sphinx = "^4.5.0"
 sphinx-rtd-theme = "^1.0.0"
 
 [tool.poetry.scripts]
-volttron-app-intelligent-load-control = "ilc.ilc_agent:main"
+volttron-ilc = "ilc.ilc_agent:main"
 
 [tool.yapf]
 based_on_style = "pep8"
