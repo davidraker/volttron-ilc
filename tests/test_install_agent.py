@@ -8,7 +8,8 @@ from volttron.client.known_identities import CONFIGURATION_STORE
 
 def test_install_and_start_agent(volttron_instance):
 
-    a = volttron_instance.build_agent()
+    #a = volttron_instance.build_agent()
+    a = volttron_instance.dynamic_agent
     gevent.sleep(1)
     capabilities = {"edit_config_store": {"identity": 'ilc.agent'}}
     volttron_instance.add_capabilities(a.core.publickey, capabilities)
