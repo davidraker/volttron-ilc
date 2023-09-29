@@ -3,7 +3,7 @@
     "building": "BUILDING",
     "power_meter": {
         "device_topic": "CAMPUS/BUILDING/METERS",
-        "point": "WholeBuildingPower"
+        "point": "WholeBuildingPower",
          "demand_forumla": {
             "operation": "Abs(WholeBuildingPower)",
             "operation_args": ["WholeBuildingPower"]
