@@ -23,14 +23,28 @@
 # }}}
 
 import re
+from sympy import symbols
+from sympy.parsing.sympy_parser import parse_expr
 
 
 def clean_text(text, rep=None):
-    rep = rep if rep else {" ": ""}
+    rep = rep if rep else {".": "_", "-": "_", "+": "_", "/": "_", ":": "_"}
     rep = dict((re.escape(k), v) for k, v in rep.items())
     pattern = re.compile("|".join(rep.keys()))
     new_key = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
     return new_key
+
+
+def sympy_helper(condition, points):
+    cleaned_points = []
+    cleaned_condition = ""
+    for point, value in points:
+        cleaned = clean_text(point)
+        cleaned_condition = condition.replace(point, cleaned)
+        cleaned_points.append((cleaned, value))
+    equation = parse_expr(cleaned_condition)
+    return_value = float(equation.subs(cleaned_points))
+    return return_value
 
 
 def parse_sympy(data, condition=False):
@@ -80,8 +94,8 @@ def create_device_topic_map(arg_list, default_topic=""):
 def fix_up_point_name(point, default_topic=""):
     if isinstance(point, list):
         device, point = point
-        #point = clean_text(point)
+        point = clean_text(point)
         return device + '/' + point, device
     elif isinstance(point, str):
-        #point = clean_text(point)
+        point = clean_text(point)
         return default_topic + '/' + point, default_topic

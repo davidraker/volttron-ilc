@@ -31,8 +31,6 @@ import time
 
 from datetime import timedelta as td, datetime as dt
 from dateutil import parser
-from sympy import symbols
-from sympy.parsing.sympy_parser import parse_expr
 from transitions import Machine
 # from transitions.extensions import GraphMachine as Machine
 
@@ -47,6 +45,7 @@ from volttron.utils.math_utils import mean
 from ilc.control_handler import ControlCluster, ControlContainer
 from ilc.criteria_handler import CriteriaContainer, CriteriaCluster, parse_sympy
 from ilc.ilc_matrices import calc_column_sums, extract_criteria, normalize_matrix, validate_input
+from ilc.utils import sympy_helper, clean_text
 
 setup_logging()
 _log = logging.getLogger(__name__)
@@ -213,8 +212,8 @@ class ILCAgent(Agent):
 
         self.vip.config.set_default("config", self.default_config)
         self.vip.config.subscribe(self.configure_main,
-                                 actions=["NEW", "UPDATE"],
-                                 pattern="config")
+                                  actions=["NEW", "UPDATE"],
+                                  pattern="config")
 
         self.next_confirm = None
         self.action_end = None
@@ -346,11 +345,9 @@ class ILCAgent(Agent):
         if demand_formula is not None:
             self.calculate_demand = True
             try:
-                demand_operation = parse_sympy(demand_formula["operation"])
-                _log.debug("Demand calculation - expression: {}".format(demand_operation))
-                self.demand_expr = parse_expr(parse_sympy(demand_operation))
-                self.demand_args = parse_sympy(demand_formula["operation_args"])
-                self.demand_points = symbols(self.demand_args)
+                self.demand_expr = demand_formula["operation"]
+                self.demand_args = demand_formula["operation_args"]
+                _log.debug("Demand calculation - expression: {}".format(self.demand_expr))
             except (KeyError, ValueError):
                 _log.debug("Missing 'operation_args' or 'operation' for setting demand formula!")
                 self.calculate_demand = False
@@ -801,7 +798,7 @@ class ILCAgent(Agent):
                     for point in self.demand_args:
                         _log.debug("Demand calculation - point: {} - value: {}".format(point, data[point]))
                         demand_point_list.append((point, data[point]))
-                    current_power = self.demand_expr.subs(demand_point_list)
+                    current_power = sympy_helper(self.demand_expr, demand_point_list)
                     _log.debug("Demand calculation - calculated power: {}".format(current_power))
                 except:
                     current_power = float(data[self.power_point])
@@ -1072,7 +1069,7 @@ class ILCAgent(Agent):
                     break
                 load_point_values.append((load_arg[0], value))
                 try:
-                    control_load = float(load_equation.subs(load_point_values))
+                    control_load = sympy_helper(load_equation, load_point_values)
                 except:
                     _log.debug("Could not convert expression for load estimation: ")
         error = False
@@ -1095,7 +1092,7 @@ class ILCAgent(Agent):
                 value = self.vip.rpc.call(device_actuator, "get_point", point_get).get(timeout=30)
                 equation_point_values.append((eq_arg[0], value))
 
-            control_value = float(equation.subs(equation_point_values))
+            control_value = sympy_helper(equation, equation_point_values)
         else:
             control_value = control["value"]
 
