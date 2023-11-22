@@ -25,6 +25,7 @@
 import re
 import logging
 from sympy.parsing.sympy_parser import parse_expr
+from sympy.logic.boolalg import Boolean
 
 from volttron.utils import setup_logging
 
@@ -53,8 +54,11 @@ def sympy_helper(condition, points):
     _log.debug(f"Sympy debug condition: {condition} -- {cleaned_condition}")
     _log.debug(f"Sympy debug points: {points} -- {cleaned_points}")
     equation = parse_expr(cleaned_condition)
-    return_value = float(equation.subs(cleaned_points))
-    return return_value
+    return_value = equation.subs(cleaned_points)
+    if isinstance(return_value, Boolean):
+        return bool(return_value)
+    else:
+        return float(return_value)\
 
 
 def parse_sympy(data, condition=False):
