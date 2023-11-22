@@ -63,15 +63,14 @@ def parse_sympy(data, condition=False):
         if condition:
             return_data = ""
             for item in data:
-                parsed_string = clean_text(item)
-                parsed_string = "(" + clean_text(item) + ")" if parsed_string not in ("&", "|") else parsed_string
+                parsed_string = "(" + item + ")" if item not in ("&", "|") else item
                 return_data += parsed_string
         else:
             return_data = []
             for item in data:
-                return_data.append(clean_text(item))
+                return_data.append(item)
     else:
-        return_data = clean_text(data)
+        return_data = data
     return return_data
 
 def create_device_topic_map(arg_list, default_topic=""):
