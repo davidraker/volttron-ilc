@@ -23,8 +23,16 @@
 # }}}
 
 import re
-from sympy import symbols
+import logging
 from sympy.parsing.sympy_parser import parse_expr
+
+from volttron.utils import setup_logging
+
+setup_logging()
+_log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s   %(levelname)-8s %(message)s',
+                    datefmt='%m-%d-%y %H:%M:%S')
 
 
 def clean_text(text, rep=None):
@@ -42,6 +50,8 @@ def sympy_helper(condition, points):
         cleaned = clean_text(point)
         cleaned_condition = condition.replace(point, cleaned)
         cleaned_points.append((cleaned, value))
+    _log.debug(f"Sympy debug condition: {condition} -- {cleaned_condition}")
+    _log.debug(f"Sympy debug points: {points} -- {cleaned_points}")
     equation = parse_expr(cleaned_condition)
     return_value = float(equation.subs(cleaned_points))
     return return_value
