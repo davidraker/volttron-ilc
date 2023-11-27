@@ -33,7 +33,7 @@ from volttron.client.messaging import headers as headers_mod
 from volttron.utils import setup_logging, get_aware_utc_now, format_timestamp
 
 from ilc.ilc_matrices import (build_score, input_matrix)
-from ilc.utils import parse_sympy, sympy_helper, create_device_topic_map, fix_up_point_name
+from ilc.utils import sympy_helper, create_device_topic_map, fix_up_point_name
 
 setup_logging()
 _log = logging.getLogger(__name__)

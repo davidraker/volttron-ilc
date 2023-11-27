@@ -99,7 +99,6 @@ class ControlContainer(object):
 class DeviceStatus(object):
     def __init__(self, logging_topic, parent, device_status_args=None, condition="", default_device=""):
         self.current_device_values = {}
-        #device_status_args = parse_sympy(device_status_args)
         device_status_args = device_status_args if device_status_args else []
 
         self.device_topic_map, self.device_topics = create_device_topic_map(device_status_args, default_device)
@@ -108,7 +107,6 @@ class DeviceStatus(object):
         
         # self.device_status_args = device_status_args
         self.condition = parse_sympy(condition, condition=True)
-        # self.expr = parse_expr(self.condition)
         self.expr = self.condition
         self.command_status = False
         self.default_device = default_device
@@ -284,7 +282,6 @@ class ControlSetting(object):
 
         if self.control_method.lower() == 'equation':
             self.equation_args = []
-            # equation_args = parse_sympy(equation['equation_args'])
             equation_args = equation['equation_args']
             for arg in equation_args:
                 point, point_device = fix_up_point_name(arg, default_device)

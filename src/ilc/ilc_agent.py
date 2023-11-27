@@ -43,7 +43,7 @@ from volttron.utils.jsonrpc import RemoteError
 from volttron.utils.math_utils import mean
 
 from ilc.control_handler import ControlCluster, ControlContainer
-from ilc.criteria_handler import CriteriaContainer, CriteriaCluster, parse_sympy
+from ilc.criteria_handler import CriteriaContainer, CriteriaCluster
 from ilc.ilc_matrices import calc_column_sums, extract_criteria, normalize_matrix, validate_input
 from ilc.utils import sympy_helper, clean_text
 
@@ -574,18 +574,13 @@ class ILCAgent(Agent):
     def breakout_all_publish(self, topic, message):
         values_map = {}
         meta_map = {}
-
         topic_parts = topic.split('/')
 
         start_index = int(topic_parts[0] == "devices")
         end_index = -int(topic_parts[-1] == "all")
 
         topic = "/".join(topic_parts[start_index:end_index])
-
         values, meta = message
-
-        # values = parse_sympy(values)
-        # meta = parse_sympy(meta)
 
         for point in values:
             values_map[topic + "/" + point] = values[point]

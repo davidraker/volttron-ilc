@@ -67,13 +67,7 @@ def parse_sympy(data, condition=False):
     :param data:
     :return:
     """
-    if isinstance(data, dict):
-        return_data = {}
-        for key, value in data.items():
-            new_key = clean_text(key)
-            return_data[new_key] = value
-
-    elif isinstance(data, list):
+    if isinstance(data, list):
         if condition:
             return_data = ""
             for item in data:
@@ -87,28 +81,25 @@ def parse_sympy(data, condition=False):
         return_data = data
     return return_data
 
+
 def create_device_topic_map(arg_list, default_topic=""):
     result = {}
     topics = set()
     for item in arg_list:
         if isinstance(item, str):
-            point = clean_text(item)
+            point = item
             result[default_topic + '/' + point] = point
             topics.add(default_topic)
         elif isinstance(item, (list, tuple)):
             device, point = item
-            point = clean_text(point)
             result[device+'/'+point] = point
             topics.add(device)
-
-
     return result, topics
+
 
 def fix_up_point_name(point, default_topic=""):
     if isinstance(point, list):
         device, point = point
-        point = clean_text(point)
         return device + '/' + point, device
     elif isinstance(point, str):
-        point = clean_text(point)
         return default_topic + '/' + point, default_topic
