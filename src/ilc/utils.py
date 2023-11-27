@@ -46,10 +46,10 @@ def clean_text(text, rep=None):
 
 def sympy_helper(condition, points):
     cleaned_points = []
-    cleaned_condition = ""
+    cleaned_condition = condition
     for point, value in points:
         cleaned = clean_text(point)
-        cleaned_condition = condition.replace(point, cleaned)
+        cleaned_condition = cleaned_condition.replace(point, cleaned)
         cleaned_points.append((cleaned, value))
     _log.debug(f"Sympy debug condition: {condition} -- {cleaned_condition}")
     _log.debug(f"Sympy debug points: {points} -- {cleaned_points}")
