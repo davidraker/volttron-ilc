@@ -58,7 +58,7 @@ def sympy_helper(condition, points):
     if isinstance(return_value, Boolean):
         return bool(return_value)
     else:
-        return float(return_value)\
+        return float(return_value)
 
 
 def parse_sympy(data, condition=False):

@@ -584,8 +584,8 @@ class ILCAgent(Agent):
 
         values, meta = message
 
-        values = parse_sympy(values)
-        meta = parse_sympy(meta)
+        # values = parse_sympy(values)
+        # meta = parse_sympy(meta)
 
         for point in values:
             values_map[topic + "/" + point] = values[point]
