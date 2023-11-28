@@ -173,7 +173,6 @@ class ILCAgent(Agent):
 
     def __init__(self, config_path, **kwargs):
         super(ILCAgent, self).__init__(**kwargs)
-        #config = load_config(config_path)
         self.state = None
         self.state_machine = Machine(model=self, states=ILCAgent.states,
                                      transitions= ILCAgent.transitions, initial='inactive', queued=True)
@@ -261,14 +260,11 @@ class ILCAgent(Agent):
         campus = config.get("campus", "")
         building = config.get("building", "")
         self.agent_id = config.get("agent_id", APP_NAME)
-        dashboard_topic = config.get("dashboard_topic")
-        ilc_start_topic = self.agent_id
         self.load_control_modes = config.get("load_control_modes", ["curtail"])
 
         campus = config.get("campus", "")
         building = config.get("building", "")
         self.agent_id = config.get("agent_id", APP_NAME)
-
         ilc_start_topic = self.agent_id
         # --------------------------------------------------------------------------------
 
@@ -603,7 +599,7 @@ class ILCAgent(Agent):
                             status = True
                             break
                     device_criteria.criteria_status((subdevice, state), status)
-                    _log.debug("Device: {} -- subdevice: {} -- curtail1 status: {}".format(device_name, subdevice, status))
+                    _log.debug("Device: {} -- subdevice: {} -- curtail status: {}".format(device_name, subdevice, status))
 
     def new_criteria_data(self, data_topics, now):
         data_t = list(data_topics.keys())
@@ -648,7 +644,7 @@ class ILCAgent(Agent):
         if self.kill_signal_received:
             return
         _log.info("Data Received for {}".format(topic))
-        # self.sync_status()
+        self.sync_status()
         data, meta = message
         now = parse_timestamp_string(header[headers_mod.TIMESTAMP])
         data_topics, meta_topics = self.breakout_all_publish(topic, message)
