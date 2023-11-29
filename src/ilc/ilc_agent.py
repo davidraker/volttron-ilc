@@ -45,7 +45,7 @@ from volttron.utils.math_utils import mean
 from ilc.control_handler import ControlCluster, ControlContainer
 from ilc.criteria_handler import CriteriaContainer, CriteriaCluster
 from ilc.ilc_matrices import calc_column_sums, extract_criteria, normalize_matrix, validate_input
-from ilc.utils import sympy_helper, clean_text
+from ilc.utils import sympy_evaluate
 
 setup_logging()
 _log = logging.getLogger(__name__)

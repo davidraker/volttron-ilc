@@ -27,7 +27,7 @@ import logging
 from volttron.client.messaging import headers as headers_mod
 from volttron.utils import setup_logging, format_timestamp, get_aware_utc_now
 
-from ilc.utils import parse_sympy, sympy_helper, create_device_topic_map, fix_up_point_name
+from ilc.utils import parse_sympy, sympy_evaluate, create_device_topic_map, fix_up_point_name
 
 setup_logging()
 _log = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ class DeviceStatus(object):
         _log.debug("Device topic map: {}".format(self.device_topic_map))
         
         # self.device_status_args = device_status_args
-        self.condition = parse_sympy(condition, condition=True)
+        self.condition = parse_sympy(condition)
         self.expr = self.condition
         self.command_status = False
         self.default_device = default_device
@@ -320,7 +320,7 @@ class ControlSetting(object):
         self.current_device_values = {}
 
         if conditional_args and condition:
-            self.conditional_control = parse_sympy(condition, condition=True)
+            self.conditional_control = parse_sympy(condition)
 
             self.device_topic_map, self.device_topics = create_device_topic_map(conditional_args, default_device)
         self.device_topics.add(self.point_device)
