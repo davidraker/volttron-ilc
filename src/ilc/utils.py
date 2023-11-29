@@ -27,9 +27,6 @@ import logging
 from sympy.parsing.sympy_parser import parse_expr
 from sympy.logic.boolalg import Boolean
 
-from volttron.utils import setup_logging
-
-setup_logging()
 _log = logging.getLogger(__name__)
 
 
@@ -53,7 +50,9 @@ def clean_text(text, rep=None):
 
 def sympy_evaluate(condition, points):
     """
-    Removes special characters associated with mathematics from a string.
+    Calls clean_text to remove special characters from points,
+    replaces point for cleaned point, and evaluates symbolic math
+    condition.
 
     :param condition: string equation or condition.
     :type condition: str
