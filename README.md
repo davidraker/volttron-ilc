@@ -5,8 +5,9 @@
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
 [![pypi version](https://img.shields.io/pypi/v/volttron-ilc.svg)](https://pypi.org/project/volttron-ilc/)
 
-Main branch tests: [![Main Branch Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
-Develop branch tests: [![Develop Branch Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg?branch=develop)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
+Main branch tests:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [![Main Branch Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
+
+Develop branch tests:&nbsp;&nbsp; [![Develop Branch Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg?branch=develop)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
 
 
 ILC supports traditional demand response as well as transactive energy
