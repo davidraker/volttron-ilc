@@ -3,7 +3,8 @@
 ![Eclipse VOLTTRON 10.0.5rc0](https://img.shields.io/badge/Eclipse%20VOLTTRON-10.0.5rc0-red.svg)
 ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
-[![Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
+[![Main Branch Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
+[![Develop Branch Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg?branch=develop)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
 [![pypi version](https://img.shields.io/pypi/v/volttron-ilc.svg)](https://pypi.org/project/volttron-ilc/)
 
 ILC supports traditional demand response as well as transactive energy
