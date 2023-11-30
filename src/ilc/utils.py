@@ -24,13 +24,14 @@
 
 import re
 import logging
+from typing import List, Set, Dict, Tuple, Any
 from sympy.parsing.sympy_parser import parse_expr
 from sympy.logic.boolalg import Boolean
 
 _log = logging.getLogger(__name__)
 
 
-def clean_text(text, rep=None):
+def clean_text(text: str, rep: dict = {}) -> str:
     """
     Removes special characters associated with mathematics from a string.
 
@@ -48,10 +49,10 @@ def clean_text(text, rep=None):
     return new_key
 
 
-def sympy_evaluate(condition, points):
+def sympy_evaluate(condition: str, points: List[Tuple[str, float], ...]) -> bool | float:
     """
-    Calls clean_text to remove special characters from points,
-    replaces point for cleaned point, and evaluates symbolic math
+    Calls clean_text to remove special characters from string in points,
+    does string replace to for cleaned point in condition, and evaluates symbolic math
     condition.
 
     :param condition: string equation or condition.
@@ -77,7 +78,7 @@ def sympy_evaluate(condition, points):
         return float(return_value)
 
 
-def parse_sympy(data):
+def parse_sympy(data: List[str]) -> str:
     """
     Creates conditional from list of conditional components.
 
@@ -97,7 +98,9 @@ def parse_sympy(data):
     return return_data
 
 
-def create_device_topic_map(arg_list, default_topic=""):
+def create_device_topic_map(arg_list: List[str] | List[Tuple[str, str], ...],
+                            default_topic: str = ""
+                            ) -> Tuple[Dict[str, str], Set[str]]:
     """
     Create device topic map for ingestion of data.
 
@@ -124,7 +127,7 @@ def create_device_topic_map(arg_list, default_topic=""):
     return result, topics
 
 
-def fix_up_point_name(point, default_topic=""):
+def fix_up_point_name(point: str | List[str], default_topic: str = "") -> Tuple[str, str]:
     """
     Create full point path from point and device topic.
 
