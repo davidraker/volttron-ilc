@@ -24,7 +24,7 @@
 
 import re
 import logging
-from typing import List, Set, Dict, Tuple, Any
+from typing import List, Set, Dict, Tuple
 from sympy.parsing.sympy_parser import parse_expr
 from sympy.logic.boolalg import Boolean
 
@@ -98,7 +98,7 @@ def parse_sympy(data: List[str]) -> str:
     return return_data
 
 
-def create_device_topic_map(arg_list: List[str] | List[Tuple[str, str], ...],
+def create_device_topic_map(arg_list: List[str] | List[Tuple[str, str]],
                             default_topic: str = ""
                             ) -> Tuple[Dict[str, str], Set[str]]:
     """
