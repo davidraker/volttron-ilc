@@ -31,8 +31,6 @@ import time
 
 from datetime import timedelta as td, datetime as dt
 from dateutil import parser
-from sympy import symbols
-from sympy.parsing.sympy_parser import parse_expr
 from transitions import Machine
 # from transitions.extensions import GraphMachine as Machine
 
@@ -45,8 +43,9 @@ from volttron.utils.jsonrpc import RemoteError
 from volttron.utils.math_utils import mean
 
 from ilc.control_handler import ControlCluster, ControlContainer
-from ilc.criteria_handler import CriteriaContainer, CriteriaCluster, parse_sympy
+from ilc.criteria_handler import CriteriaContainer, CriteriaCluster
 from ilc.ilc_matrices import calc_column_sums, extract_criteria, normalize_matrix, validate_input
+from ilc.utils import sympy_evaluate
 
 setup_logging()
 _log = logging.getLogger(__name__)
@@ -174,7 +173,6 @@ class ILCAgent(Agent):
 
     def __init__(self, config_path, **kwargs):
         super(ILCAgent, self).__init__(**kwargs)
-        #config = load_config(config_path)
         self.state = None
         self.state_machine = Machine(model=self, states=ILCAgent.states,
                                      transitions= ILCAgent.transitions, initial='inactive', queued=True)
@@ -213,8 +211,8 @@ class ILCAgent(Agent):
 
         self.vip.config.set_default("config", self.default_config)
         self.vip.config.subscribe(self.configure_main,
-                                 actions=["NEW", "UPDATE"],
-                                 pattern="config")
+                                  actions=["NEW", "UPDATE"],
+                                  pattern="config")
 
         self.next_confirm = None
         self.action_end = None
@@ -262,14 +260,11 @@ class ILCAgent(Agent):
         campus = config.get("campus", "")
         building = config.get("building", "")
         self.agent_id = config.get("agent_id", APP_NAME)
-        dashboard_topic = config.get("dashboard_topic")
-        ilc_start_topic = self.agent_id
         self.load_control_modes = config.get("load_control_modes", ["curtail"])
 
         campus = config.get("campus", "")
         building = config.get("building", "")
         self.agent_id = config.get("agent_id", APP_NAME)
-
         ilc_start_topic = self.agent_id
         # --------------------------------------------------------------------------------
 
@@ -346,11 +341,9 @@ class ILCAgent(Agent):
         if demand_formula is not None:
             self.calculate_demand = True
             try:
-                demand_operation = parse_sympy(demand_formula["operation"])
-                _log.debug("Demand calculation - expression: {}".format(demand_operation))
-                self.demand_expr = parse_expr(parse_sympy(demand_operation))
-                self.demand_args = parse_sympy(demand_formula["operation_args"])
-                self.demand_points = symbols(self.demand_args)
+                self.demand_expr = demand_formula["operation"]
+                self.demand_args = demand_formula["operation_args"]
+                _log.debug("Demand calculation - expression: {}".format(self.demand_expr))
             except (KeyError, ValueError):
                 _log.debug("Missing 'operation_args' or 'operation' for setting demand formula!")
                 self.calculate_demand = False
@@ -577,18 +570,13 @@ class ILCAgent(Agent):
     def breakout_all_publish(self, topic, message):
         values_map = {}
         meta_map = {}
-
         topic_parts = topic.split('/')
 
         start_index = int(topic_parts[0] == "devices")
         end_index = -int(topic_parts[-1] == "all")
 
         topic = "/".join(topic_parts[start_index:end_index])
-
         values, meta = message
-
-        values = parse_sympy(values)
-        meta = parse_sympy(meta)
 
         for point in values:
             values_map[topic + "/" + point] = values[point]
@@ -611,7 +599,7 @@ class ILCAgent(Agent):
                             status = True
                             break
                     device_criteria.criteria_status((subdevice, state), status)
-                    _log.debug("Device: {} -- subdevice: {} -- curtail1 status: {}".format(device_name, subdevice, status))
+                    _log.debug("Device: {} -- subdevice: {} -- curtail status: {}".format(device_name, subdevice, status))
 
     def new_criteria_data(self, data_topics, now):
         data_t = list(data_topics.keys())
@@ -656,7 +644,7 @@ class ILCAgent(Agent):
         if self.kill_signal_received:
             return
         _log.info("Data Received for {}".format(topic))
-        # self.sync_status()
+        self.sync_status()
         data, meta = message
         now = parse_timestamp_string(header[headers_mod.TIMESTAMP])
         data_topics, meta_topics = self.breakout_all_publish(topic, message)
@@ -801,7 +789,7 @@ class ILCAgent(Agent):
                     for point in self.demand_args:
                         _log.debug("Demand calculation - point: {} - value: {}".format(point, data[point]))
                         demand_point_list.append((point, data[point]))
-                    current_power = self.demand_expr.subs(demand_point_list)
+                    current_power = sympy_helper(self.demand_expr, demand_point_list)
                     _log.debug("Demand calculation - calculated power: {}".format(current_power))
                 except:
                     current_power = float(data[self.power_point])
@@ -1072,7 +1060,7 @@ class ILCAgent(Agent):
                     break
                 load_point_values.append((load_arg[0], value))
                 try:
-                    control_load = float(load_equation.subs(load_point_values))
+                    control_load = sympy_helper(load_equation, load_point_values)
                 except:
                     _log.debug("Could not convert expression for load estimation: ")
         error = False
@@ -1095,7 +1083,7 @@ class ILCAgent(Agent):
                 value = self.vip.rpc.call(device_actuator, "get_point", point_get).get(timeout=30)
                 equation_point_values.append((eq_arg[0], value))
 
-            control_value = float(equation.subs(equation_point_values))
+            control_value = sympy_helper(equation, equation_point_values)
         else:
             control_value = control["value"]
 

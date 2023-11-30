@@ -28,13 +28,12 @@ import logging
 from collections import deque
 from datetime import timedelta as td
 from sympy.core import numbers
-from sympy.parsing.sympy_parser import parse_expr
 
 from volttron.client.messaging import headers as headers_mod
 from volttron.utils import setup_logging, get_aware_utc_now, format_timestamp
 
 from ilc.ilc_matrices import (build_score, input_matrix)
-from ilc.utils import parse_sympy, create_device_topic_map, fix_up_point_name
+from ilc.utils import sympy_evaluate, create_device_topic_map, fix_up_point_name
 
 setup_logging()
 _log = logging.getLogger(__name__)
@@ -324,7 +323,7 @@ class FormulaCriterion(BaseCriterion):
         operation_args = self.fixup_dict_args(operation_args)
         self.build_ingest_map(operation_args)
         _log.debug("Device topic map: {}".format(self.device_topic_map))
-        self.expr = parse_expr(parse_sympy(operation))
+        self.expr = operation
         self.status = False
 
         self.current_operation_values = {}
@@ -369,7 +368,7 @@ class FormulaCriterion(BaseCriterion):
     def evaluate(self):
         if len(self.current_operation_values) >= self.operation_arg_count:
             point_list = self.current_operation_values.items()
-            value = self.expr.subs(point_list)
+            value = sympy_helper(self.expr, point_list)
         else:
             value = self.minimum
         return value
@@ -379,7 +378,6 @@ class FormulaCriterion(BaseCriterion):
             if topic in data:
                 if not self.status or point not in self.update_points.get("nc", set()):
                     value = data[topic]
-                    # self.publish_data(topic, value, time_stamp)
                     self.current_operation_values[point] = value
 
     def criteria_status(self, status):
