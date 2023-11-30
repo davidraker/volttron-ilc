@@ -1,10 +1,14 @@
 # Intelligent Load Control (ILC) Agent
 
-![Eclipse VOLTTRON 10.0.4rc](https://img.shields.io/badge/Eclipse%20VOLTTRON-10.0.4rc-red.svg)
+![Eclipse VOLTTRON 10.0.5rc0](https://img.shields.io/badge/Eclipse%20VOLTTRON-10.0.5rc0-red.svg)
 ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
-[![Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg)](https://github.com/VOLTTRON/volttron-ilc/actions/workflows/run-tests.yml)
 [![pypi version](https://img.shields.io/pypi/v/volttron-ilc.svg)](https://pypi.org/project/volttron-ilc/)
+
+Main branch tests:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [![Main Branch Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
+
+Develop branch tests:&nbsp;&nbsp; [![Develop Branch Passing?](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml/badge.svg?branch=develop)](https://github.com/eclipse-volttron/volttron-ilc/actions/workflows/run-tests.yml)
+
 
 ILC supports traditional demand response as well as transactive energy
 services. ILC manages controllable loads while also mitigating
@@ -22,7 +26,8 @@ qualitative rules (type of zone).
 
 ## Documentation
 
-More detailed documentation can be found on [ReadTheDocs](https://eclipse-volttron.readthedocs.io/). The RST source
+More detailed documentation can be found on
+[ReadTheDocs](https://eclipse-volttron.readthedocs.io/en/latest/external-docs/volttron-ilc/index.html). The RST source
 of the documentation for this agent is located in the "docs" directory of this repository.
 
 ## ILC Agent Configuration
@@ -36,7 +41,8 @@ may be found in the sample_configs directory of this repository:
     cluster for load management. 
  4. pairwise_criteria.json - Contains information related to the relative importance of each criteria for a device cluster.
     
-Full documentation of ILC configurations can be found on [ReadTheDocs](https://eclipse-volttron.readthedocs.io/).
+Full documentation of ILC configurations can be found on
+[ReadTheDocs](https://eclipse-volttron.readthedocs.io/en/latest/external-docs/volttron-ilc/index.html).
 A web-based configuration tool has been developed to simplify creation of the configuration files for ILC.
 The web tool can be accessed [here](https://ilc-configuration-tool.web.app/).
 
