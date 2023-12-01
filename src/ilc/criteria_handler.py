@@ -368,7 +368,7 @@ class FormulaCriterion(BaseCriterion):
     def evaluate(self):
         if len(self.current_operation_values) >= self.operation_arg_count:
             point_list = self.current_operation_values.items()
-            value = sympy_helper(self.expr, point_list)
+            value = sympy_evaluate(self.expr, point_list)
         else:
             value = self.minimum
         return value

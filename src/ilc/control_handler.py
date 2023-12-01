@@ -127,7 +127,7 @@ class DeviceStatus(object):
         conditional_points = self.current_device_values.items()
         conditional_value = False
         if conditional_points:
-            conditional_value = sympy_helper(self.expr, conditional_points)
+            conditional_value = sympy_evaluate(self.expr, conditional_points)
         try:
             self.command_status = bool(conditional_value)
         except TypeError:
@@ -371,7 +371,7 @@ class ControlSetting(object):
             return True
 
         if self.conditional_points:
-            value = sympy_helper(self.conditional_control, self.conditional_points)
+            value = sympy_evaluate(self.conditional_control, self.conditional_points)
             _log.debug('{} (conditional_control) evaluated to {}'.format(self.conditional_control, value))
         else:
             value = False

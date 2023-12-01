@@ -789,7 +789,7 @@ class ILCAgent(Agent):
                     for point in self.demand_args:
                         _log.debug("Demand calculation - point: {} - value: {}".format(point, data[point]))
                         demand_point_list.append((point, data[point]))
-                    current_power = sympy_helper(self.demand_expr, demand_point_list)
+                    current_power = sympy_evaluate(self.demand_expr, demand_point_list)
                     _log.debug("Demand calculation - calculated power: {}".format(current_power))
                 except:
                     current_power = float(data[self.power_point])
@@ -1060,7 +1060,7 @@ class ILCAgent(Agent):
                     break
                 load_point_values.append((load_arg[0], value))
                 try:
-                    control_load = sympy_helper(load_equation, load_point_values)
+                    control_load = sympy_evaluate(load_equation, load_point_values)
                 except:
                     _log.debug("Could not convert expression for load estimation: ")
         error = False
@@ -1083,7 +1083,7 @@ class ILCAgent(Agent):
                 value = self.vip.rpc.call(device_actuator, "get_point", point_get).get(timeout=30)
                 equation_point_values.append((eq_arg[0], value))
 
-            control_value = sympy_helper(equation, equation_point_values)
+            control_value = sympy_evaluate(equation, equation_point_values)
         else:
             control_value = control["value"]
 
