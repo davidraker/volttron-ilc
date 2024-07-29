@@ -800,7 +800,7 @@ class ILCAgent(Agent):
                     for point in self.demand_args:
                         _log.debug("Demand calculation - point: {} - value: {}".format(point, data[point]))
                         demand_point_list.append((point, data[point]))
-                    current_power = sympy_helper(self.demand_expr, demand_point_list)
+                    current_power = sympy_evaluate(self.demand_expr, demand_point_list)
                     _log.debug("Demand calculation - calculated power: {}".format(current_power))
                 except:
                     current_power = float(data[self.power_point])

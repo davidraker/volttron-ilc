@@ -24,7 +24,7 @@
 
 import re
 import logging
-from typing import List, Set, Dict, Tuple
+from typing import ItemsView, List, Set, Dict, Tuple
 from sympy.parsing.sympy_parser import parse_expr
 from sympy.logic.boolalg import Boolean
 
@@ -49,7 +49,7 @@ def clean_text(text: str, rep: dict = {}) -> str:
     return new_key
 
 
-def sympy_evaluate(condition: str, points: List[Tuple[str, float]]) -> bool | float:
+def sympy_evaluate(condition: str, points: List[Tuple[str, float]] | ItemsView[str, float]) -> bool | float:
     """
     Calls clean_text to remove special characters from string in points,
     does string replace to for cleaned point in condition, and evaluates symbolic math
