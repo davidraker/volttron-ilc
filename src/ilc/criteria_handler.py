@@ -334,7 +334,7 @@ class FormulaCriterion(BaseCriterion):
         self.current_operation_values = {}
 
     def fixup_dict_args(self, operation_args):
-        "backwards compatiblility with old configurations"
+        """backwards compatibility with old configurations"""
         need_fix = False
         for key in operation_args:
             if key not in ("always", "nc"):
@@ -355,7 +355,7 @@ class FormulaCriterion(BaseCriterion):
         return result
 
     def build_ingest_map(self, operation_args):
-        "Build data structures for ingest data and return operation points for sympy"
+        """Build data structures for ingest data and return operation points for sympy"""
         self.device_topic_map = {}
         self.update_points = {}
         self.operation_arg_count = 0
@@ -444,6 +444,7 @@ class HistoryCriterion(BaseCriterion):
             value = abs(prev_value - self.current_value)
         elif self.comparison_type == 'inverse':
             value = 1 / abs(prev_value - self.current_value)
+        # TODO: There should be an else block for comparison_type. Raise?, log?
         return value
 
     def ingest_data(self, time_stamp, data):
