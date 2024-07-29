@@ -29,7 +29,10 @@ import operator
 from collections import defaultdict
 from functools import reduce
 
-from volttron.utils import load_config, setup_logging
+if int(version('volttron').split('.')[0]) >= 10:
+    from volttron.utils import setup_logging
+else:
+    from volttron.platform.agent.utils import setup_logging
 
 setup_logging()
 _log = logging.getLogger(__name__)

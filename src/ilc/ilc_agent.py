@@ -31,16 +31,27 @@ import time
 
 from datetime import timedelta as td, datetime as dt
 from dateutil import parser
+from importlib.metadata import version
 from transitions import Machine
+from weakref import WeakSet
 # from transitions.extensions import GraphMachine as Machine
 
-from volttron.client.vip.agent import Agent, Core
-from volttron.client.messaging import topics, headers as headers_mod
-from volttron.utils import (
-    format_timestamp, get_aware_utc_now, load_config, parse_timestamp_string, setup_logging, vip_main
-)
-from volttron.utils.jsonrpc import RemoteError
-from volttron.utils.math_utils import mean
+if int(version('volttron').split('.')[0]) >= 10:
+    from volttron.client.vip.agent import Agent, Core
+    from volttron.client.messaging import topics, headers as headers_mod
+    from volttron.utils import (
+        format_timestamp, get_aware_utc_now, load_config, parse_timestamp_string, setup_logging, vip_main
+    )
+    from volttron.utils.jsonrpc import RemoteError
+    from volttron.utils.math_utils import mean
+else:
+    from volttron.platform.vip.agent import Agent, Core
+    from volttron.platform.messaging import topics, headers as headers_mod
+    from volttron.platform.agent.utils import (
+        format_timestamp, get_aware_utc_now, load_config, parse_timestamp_string, setup_logging, vip_main
+    )
+    from volttron.platform.jsonrpc import RemoteError
+    from volttron.platform.agent.math_utils import mean
 
 from ilc.control_handler import ControlCluster, ControlContainer
 from ilc.criteria_handler import CriteriaContainer, CriteriaCluster

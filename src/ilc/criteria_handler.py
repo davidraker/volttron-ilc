@@ -27,10 +27,15 @@ import logging
 
 from collections import deque
 from datetime import timedelta as td
+from importlib.metadata import version
 from sympy.core import numbers
 
-from volttron.client.messaging import headers as headers_mod
-from volttron.utils import setup_logging, get_aware_utc_now, format_timestamp
+if int(version('volttron').split('.')[0]) >= 10:
+    from volttron.client.messaging import headers as headers_mod
+    from volttron.utils import setup_logging, get_aware_utc_now, format_timestamp
+else:
+    from volttron.platform.messaging import headers as headers_mod
+    from volttron.platform.agent.utils import format_timestamp, get_aware_utc_now, setup_logging
 
 from ilc.ilc_matrices import (build_score, input_matrix)
 from ilc.utils import sympy_evaluate, create_device_topic_map, fix_up_point_name

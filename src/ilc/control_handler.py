@@ -21,11 +21,23 @@
 #
 # ===----------------------------------------------------------------------===
 # }}}
-
+import abc
 import logging
 
-from volttron.client.messaging import headers as headers_mod
-from volttron.utils import setup_logging, format_timestamp, get_aware_utc_now
+import gevent
+
+from importlib.metadata import version
+
+if int(version('volttron').split('.')[0]) >= 10:
+    from volttron.client.messaging import headers as headers_mod
+    from volttron.client.vip.agent import Agent
+    from volttron.utils import setup_logging, format_timestamp, get_aware_utc_now
+    from volttron.utils.jsonrpc import RemoteError
+else:
+    from volttron.platform.vip.agent import Agent
+    from volttron.platform.messaging import headers as headers_mod
+    from volttron.platform.agent.utils import format_timestamp, get_aware_utc_now, setup_logging
+    from volttron.platform.jsonrpc import RemoteError
 
 from ilc.utils import parse_sympy, sympy_evaluate, create_device_topic_map, fix_up_point_name
 
