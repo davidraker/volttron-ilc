@@ -462,16 +462,16 @@ class ControlSetting(object):
 
     @classmethod
     def make_setting(cls, control_method, **kwargs):
-        match control_method.lower():
-            case "equation":
-                return EquationControlSetting(**kwargs)
-            case "offset":
-                return OffsetControlSetting(**kwargs)
-            case "ramp":
-                return RampControlSetting(**kwargs)
-            case "value":
-                return ValueControlSetting(**kwargs)
-        raise ValueError(f"Missing valid 'control_method' configuration parameter! Received: '{control_method}'")
+        if control_method.lower() == "equation":
+            return EquationControlSetting(**kwargs)
+        elif control_method.lower() == "offset":
+            return OffsetControlSetting(**kwargs)
+        elif control_method.lower() == "ramp":
+            return RampControlSetting(**kwargs)
+        elif control_method.lower() == "value":
+            return ValueControlSetting(**kwargs)
+        else:
+            raise ValueError(f"Missing valid 'control_method' configuration parameter! Received: '{control_method}'")
 
 
 class EquationControlSetting(ControlSetting):

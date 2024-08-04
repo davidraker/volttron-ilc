@@ -24,7 +24,7 @@
 
 import re
 import logging
-from typing import ItemsView, List, Set, Dict, Tuple
+from typing import ItemsView, List, Set, Dict, Tuple, Union
 from sympy.parsing.sympy_parser import parse_expr
 from sympy.logic.boolalg import Boolean
 
@@ -49,7 +49,7 @@ def clean_text(text: str, rep: dict = {}) -> str:
     return new_key
 
 
-def sympy_evaluate(condition: str, points: List[Tuple[str, float]] | ItemsView[str, float]) -> bool | float:
+def sympy_evaluate(condition: str, points: Union[List[Tuple[str, float]], ItemsView[str, float]]) -> Union[bool, float]:
     """
     Calls clean_text to remove special characters from string in points,
     does string replace to for cleaned point in condition, and evaluates symbolic math
@@ -98,7 +98,7 @@ def parse_sympy(data: List[str]) -> str:
     return return_data
 
 
-def create_device_topic_map(arg_list: List[str] | List[Tuple[str, str]],
+def create_device_topic_map(arg_list: Union[List[str], List[Tuple[str, str]]],
                             default_topic: str = ""
                             ) -> Tuple[Dict[str, str], Set[str]]:
     """
@@ -127,7 +127,7 @@ def create_device_topic_map(arg_list: List[str] | List[Tuple[str, str]],
     return result, topics
 
 
-def fix_up_point_name(point: str | List[str], default_topic: str = "") -> Tuple[str, str]:
+def fix_up_point_name(point: Union[str, List[str]], default_topic: str = "") -> Tuple[str, str]:
     """
     Create full point path from point and device topic.
 
