@@ -265,12 +265,12 @@ class ILCAgent(Agent):
         self.demand_schedule = None
         self.action_time = td(minutes=15)
         self.average_window = td(minutes=15)
-        self.confirm_time = td(5)
+        self.confirm_time = td(minutes=5)
 
         self.actuator_schedule_buffer = td(minutes=15) + self.action_time
         self.longest_possible_curtail = 0.0
 
-        self.stagger_release_time = self.action_time.seconds
+        self.stagger_release_time = self.action_time
         self.stagger_release = False
         self.need_actuator_schedule = False
         self.demand_threshold = 5.0
@@ -421,7 +421,7 @@ class ILCAgent(Agent):
         self.actuator_schedule_buffer = td(minutes=config.get("actuator_schedule_buffer", 15)) + self.action_time
         self.longest_possible_curtail = len(all_devices) * self.action_time * 2
 
-        self.stagger_release_time = float(config.get("release_time", self.action_time.seconds))
+        self.stagger_release_time = td(minutes=config.get("release_time", self.action_time.seconds/60))
         self.stagger_release = config.get("stagger_release", self.stagger_release)
         self.need_actuator_schedule = config.get("need_actuator_schedule", self.need_actuator_schedule)
         self.demand_threshold = config.get("demand_threshold", self.demand_threshold)
@@ -1076,11 +1076,11 @@ class ILCAgent(Agent):
         if self.stagger_release and self.devices:
             _log.debug("Number or controlled devices: {}".format(len(self.devices)))
 
-            confirm_in_minutes = self.confirm_time.total_seconds()/60.0
-            release_steps = int(max(1, math.floor(self.stagger_release_time/confirm_in_minutes + 1)))
-
+            release_steps = int(max(1, math.floor(self.stagger_release_time/self.confirm_time + 1)))
+            _log.debug(f'In setup_release -- self.stagger_release_time: {self.stagger_release_time}, confirm time: {self.confirm_time}, release_steps: {release_steps}')
+            _log.debug(f'Length of self.devices: {len(self.devices)}')
             self.device_group_size = [int(math.floor(len(self.devices)/release_steps))] * release_steps
-            _log.debug("Current group size:  {}".format(self.device_group_size))
+            _log.debug("On creation, current group size:  {}".format(self.device_group_size))
 
             if len(self.devices) > release_steps:
                 for group in range(len(self.devices) % release_steps):
@@ -1099,15 +1099,16 @@ class ILCAgent(Agent):
                     if unassigned <= 0:
                         break
 
-            self.current_stagger = [math.floor(self.stagger_release_time / (release_steps - 1))] * (release_steps - 1)
-            for group in range(int(self.stagger_release_time % (release_steps - 1))):
+            self.current_stagger = [math.floor((self.stagger_release_time / (release_steps - 1)).seconds/60)
+                                    ] * (release_steps - 1)
+            for group in range(int(self.stagger_release_time.seconds/60 % (release_steps - 1))):
                 self.current_stagger[group] += 1
         else:
             self.device_group_size = [len(self.devices)]
             self.current_stagger = []
 
         _log.debug("Current stagger time:  {}".format(self.current_stagger))
-        _log.debug("Current group size:  {}".format(self.device_group_size))
+        _log.debug("A end of setup_release, current group size:  {}".format(self.device_group_size))
 
     def reset_devices(self):
         """

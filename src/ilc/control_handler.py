@@ -393,6 +393,7 @@ class ControlSetting(object):
 
     @abc.abstractmethod
     def _determine_control_value(self):
+        _log.debug(f'######### IN _DETERMINE_CONTROL_VALUE, CONTROL_VALUE STARTS: {self.control_value}')
         # Implementations should typically call super when finished with their own logic to run this:
         if None not in [self.minimum, self.maximum]:
             self.control_value = max(self.minimum, min(self.control_value, self.maximum))
@@ -400,6 +401,7 @@ class ControlSetting(object):
             self.control_value = max(self.minimum, self.control_value)
         elif self.maximum is not None and self.minimum is None:
             self.control_value = min(self.maximum, self.control_value)
+        _log.debug(f'######## IN _DETERMINE_CONTROL_VALUE, CONTROL_VALUE ENDS: {self.control_value}')
 
     @abc.abstractmethod
     def _actuate(self):
@@ -528,26 +530,29 @@ class RampControlSetting(ControlSetting):
     def __init__(self, destination_value, increment_time, increment_value, **kwargs):
         super(RampControlSetting, self).__init__(**kwargs)
         self.control_method = 'ramp'
-        self.control_value = destination_value
+        self.destination_value = destination_value
         self.increment_time = increment_time
         self.increment_value = increment_value
-
+        _log.debug(f'######## IN RAMP INIT, CONTROL_VALUE IS: {self.control_value}')
         self.greenlet = None
 
     def get_control_info(self):
         control_info = super(RampControlSetting, self).get_control_info()
         control_info.update({'control_method': 'ramp',
+                             'destination_value': self.destination_value,
                              'increment_time': self.increment_time,
                              'increment_value': self.increment_value
                              })
         return control_info
 
     def _determine_control_value(self):
+        self.control_value = self.destination_value
         super(RampControlSetting, self)._determine_control_value()
 
     def _actuate(self):
         if self.greenlet:
             self.greenlet.kill()
+        _log.debug(f'######## IN _ACTUATE, CONTROL_VALUE IS: {self.control_value}')
         start_value = self.agent.vip.rpc.call(self.device_actuator, "get_point", self.control_point_topic
                                               ).get(timeout=30)
         steps = (start_value - self.control_value) / self.increment_value
