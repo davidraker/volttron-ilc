@@ -992,6 +992,7 @@ class ILCAgent(Agent):
             if self.update_devices(device_name, device_id):
                 self.devices.add(control_setting)
                 # TODO: Remove deprecated code block after confirmed working.
+                #  self.devices == [[], [a,b,c,d,e,f,g,h], []]
                 #     [
                 #       0  control_setting.device_name,
                 #       1  control_setting.device_id,
@@ -1127,17 +1128,14 @@ class ILCAgent(Agent):
 
         for item in range(self.device_group_size.pop(0)):
             dev = controlled_iterate[item]
-            revert_value = self.get_revert_value(dev.device_name, dev.revert_priority, dev.revert_value)
 
-            _log.debug("Returned revert value: {}".format(revert_value))
+            # If we do not have the highest priority setting with this device_name, work with that one instead.
+            if dev.revert_priority is not None:
+                current_device_list = [c for c in self.devices if c.device_name == dev.device_name]
+                dev = max(current_device_list, key=lambda t: t.revert_priority)
 
             try:
-                if revert_value is not None:
-                    result = self.vip.rpc.call(dev.device_actuator, "set_point", "ilc", dev.point, revert_value).get(timeout=30)
-                    _log.debug("Reverted point: {} to value: {}".format(dev.point, revert_value))
-                else:
-                    result = self.vip.rpc.call(dev.device_actuator, "revert_point", "ilc", dev.point).get(timeout=30)
-                    _log.debug("Reverted point: {} - Result: {}".format(dev.point, result))
+                dev.release()
                 if currently_controlled:
                     _log.debug("Removing from controlled list: {} ".format(controlled_iterate[item]))
                     self.control_container.get_device((dev.device_name, dev.device_actuator)).reset_control_status(dev.device_id)
@@ -1154,35 +1152,6 @@ class ILCAgent(Agent):
         elif self.state not in ['curtail_holding', 'augment_holding', 'augment', 'curtail', 'inactive']:
             self.finished()
         self.lock = False
-
-    def get_revert_value(self, device, revert_priority, revert_value):
-        """
-        If BACnet priority array cannot be used this method will return the
-        the revert value for the control point.
-        :param device:
-        :param revert_priority:
-        :param revert_value:
-        :return:
-        """
-        # TODO:  Resolve issue with revert_priority as key to do BACNet release.  This is not ideal solution.
-        current_device_list = []
-        if revert_priority is None:
-            return None
-
-        for controlled_device in self.devices:
-            if controlled_device.device_name == device:
-                current_device_list.append(controlled_device)
-
-        if len(current_device_list) <= 1:
-            return revert_value
-
-        max_priority_setting = max(current_device_list, key=lambda t: t.revert_priority)
-        return_value = max_priority_setting.revert_value
-        _log.debug("Stored revert value: {} for device: {}".format(return_value, device))
-        max_priority_setting.revert_value = revert_value
-        max_priority_setting.revert_priority = revert_priority # THIS IS THE ORDER IN WHICH SUBDEVICES ARE RELEASED.
-
-        return return_value
 
     def reinitialize_release(self):
         if self.devices:
