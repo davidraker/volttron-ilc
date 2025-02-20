@@ -447,8 +447,8 @@ class ILCAgent(Agent):
         if self.power_meter_topic is not None:
             _log.debug("Subscribing to " + self.power_meter_topic)
             self.vip.pubsub.subscribe(peer="pubsub",
-                                  prefix=self.power_meter_topic,
-                                  callback=self.load_message_handler)
+                                      prefix=self.power_meter_topic,
+                                      callback=self.load_message_handler)
 
         if self.kill_device_topic is not None:
             _log.debug("Subscribing to " + self.kill_device_topic)

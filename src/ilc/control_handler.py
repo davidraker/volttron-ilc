@@ -116,7 +116,7 @@ class DeviceStatus(object):
         self.device_topic_map, self.device_topics = create_device_topic_map(device_status_args, default_device)
 
         _log.debug("Device topic map: {}".format(self.device_topic_map))
-        
+
         # self.device_status_args = device_status_args
         self.condition = parse_sympy(condition)
         self.expr = self.condition
@@ -144,103 +144,139 @@ class DeviceStatus(object):
             self.command_status = bool(conditional_value)
         except TypeError:
             self.command_status = False
-        message = self.current_device_values
-        message["Status"] = self.command_status
-        topic = "/".join([self.logging_topic, self.default_device, "DeviceStatus"])
-        # publish_data(time_stamp, message, topic, self.parent.vip.pubsub.publish)
 
 
 class Controls(object):
-    def __init__(self, device_id, control_config, logging_topic, agent, manager, default_device="",
-                 device_actuator='platform.actuator'):
+    def __init__(self, device_id, control_config, logging_topic, agent,
+                 manager, default_device="", device_actuator='platform.actuator'):
         self.id = device_id
         self.device_topics = set()
         self.manager = manager
-
+        self.device_status = {}
+        self.device_release_trigger = {}
+        self.conditional_curtailments = []
+        self.conditional_augments = []
+        self.currently_controlled = False
         device_topic = control_config.pop("device_topic", default_device)
         self.device_topics.add(device_topic)
-        self.device_status = {}
-        self.conditional_curtailments = []
+        self.conditional_curtailments = self.process_conditional_settings(
+            control_config.pop("curtail_settings", []),
+            logging_topic, agent, device_topic, device_actuator
+        )
+        self.conditional_augments = self.process_conditional_settings(
+            control_config.pop("augment_settings", []),
+            logging_topic, agent, device_topic, device_actuator
+        )
+        self.device_status = self.process_device_status(
+            control_config.pop("device_status"), logging_topic, agent, device_topic
+        )
+        release_trigger = control_config.pop("release_trigger", {})
+        if release_trigger:
+            self.device_release_trigger = self.process_device_status(
+                release_trigger, logging_topic, agent, device_topic
+            )
 
-        curtailment_settings = control_config.pop('curtail_settings', [])
-        if isinstance(curtailment_settings, dict):
-            curtailment_settings = [curtailment_settings]
+    def process_conditional_settings(self, settings, logging_topic, agent, default_device, device_actuator):
+        if isinstance(settings, dict):
+            settings = [settings]
+        conditional_settings = []
+        for setting in settings:
+            conditional = ControlSetting.make_setting(
+                logging_topic=logging_topic, agent=agent,
+                controls_object=self, default_device=default_device,
+                device_actuator=device_actuator, **setting
+            )
+            self.device_topics |= conditional.device_topics
+            conditional_settings.append(conditional)
+        return conditional_settings
 
-        for settings in curtailment_settings:
-            conditional_curtailment = ControlSetting.make_setting(logging_topic=logging_topic, agent=agent,
-                                                                  controls_object=self, default_device=device_topic,
-                                                                  device_actuator=device_actuator, **settings)
-            self.device_topics |= conditional_curtailment.device_topics
-            self.conditional_curtailments.append(conditional_curtailment)
-
-        self.conditional_augments = []
-        augment_settings = control_config.pop('augment_settings', [])
-        if isinstance(augment_settings, dict):
-            augment_settings = [augment_settings]
-
-        for settings in augment_settings:
-            conditional_augment = ControlSetting.make_setting(logging_topic=logging_topic, agent=agent,
-                                                              controls_object=self, default_device=device_topic,
-                                                              device_actuator=device_actuator, **settings)
-            self.device_topics |= conditional_augment.device_topics
-            self.conditional_augments.append(conditional_augment)
-        device_status_dict = control_config.pop('device_status')
-        if "curtail" not in device_status_dict and "augment" not in device_status_dict:
-            self.device_status["curtail"] = DeviceStatus(logging_topic, agent, default_device=device_topic,
-                                                         **device_status_dict)
-            self.device_topics |= self.device_status["curtail"].device_topics
+    def process_device_status(self, status_config, logging_topic, agent, default_device):
+        device_status = {}
+        if "curtail" not in status_config and "augment" not in status_config:
+            device_status["curtail"] = DeviceStatus(logging_topic, agent, default_device=default_device,
+                                                    **status_config)
+            self.device_topics |= device_status["curtail"].device_topics
         else:
-            for state, device_status_params in device_status_dict.items():
-                self.device_status[state] = DeviceStatus(logging_topic, agent, default_device=device_topic,
-                                                         **device_status_params)
-                self.device_topics |= self.device_status[state].device_topics
-        self.currently_controlled = False
-        _log.debug("CONTROL_TOPIC: {}".format(self.device_topics))
+            for state, params in status_config.items():
+                device_status[state] = DeviceStatus(logging_topic, agent, default_device=default_device, **params)
+                self.device_topics |= device_status[state].device_topics
+        return device_status
 
     def ingest_data(self, time_stamp, data):
-        for conditional_curtailment in self.conditional_curtailments:
-            conditional_curtailment.ingest_data(time_stamp, data)
-        for conditional_augment in self.conditional_augments:
-            conditional_augment.ingest_data(time_stamp, data)
-        for state in self.device_status:
-            self.device_status[state].ingest_data(time_stamp, data)
+        def process_ingestion(target):
+            for item in target:
+                item.ingest_data(time_stamp, data)
+
+        # Ingest data for conditional curtailments
+        process_ingestion(self.conditional_curtailments)
+
+        # Ingest data for conditional augments
+        process_ingestion(self.conditional_augments)
+
+        # Ingest data for device status
+        for status_key, status_value in self.device_status.items():
+            status_value.ingest_data(time_stamp, data)
+
+        # Return early if no release trigger exists
+        if not self.device_release_trigger:
+            return
+
+        # Process device release triggers
+        for release_state, release_cls in self.device_release_trigger.items():
+            release_cls.ingest_data(time_stamp, data)
+            if release_cls.command_status:
+                self.device_status[release_state].command_status = False
+                if self.currently_controlled:
+                    control_setting = self.get_control_setting(release_state)
+                    if control_setting in control_setting.agent.devices:
+                        control_setting.release()
+                        self.reset_control_status()
+                        control_setting.agent.devices.discard(control_setting)
+
+    def get_settings_by_state(self, state):
+        """Helper to fetch settings based on state."""
+        return self.conditional_curtailments if state == 'curtail' else self.conditional_augments
 
     def get_control_info(self, state):
-        settings = self.conditional_curtailments if state == 'curtail' else self.conditional_augments
-        for setting in settings:
+        """Get control information based on the state."""
+        for setting in self.get_settings_by_state(state):
             if setting.check_condition():
                 return setting.get_control_info()
         return None
 
     def get_control_setting(self, state):
-        settings = self.conditional_curtailments if state == 'curtail' else self.conditional_augments
-        for setting in settings:
+        """Get specific control setting based on the state."""
+        for setting in self.get_settings_by_state(state):
             if setting.check_condition():
                 return setting
         return None
 
     def get_point_device(self, state):
-        settings = self.conditional_curtailments if state == 'curtail' else self.conditional_augments
-        for setting in settings:
+        """Get point device based on the state."""
+        for setting in self.get_settings_by_state(state):
             if setting.check_condition():
                 return setting.get_point_device()
-
         return None
 
     def increment_control(self):
+        """Mark control as currently active."""
         self.currently_controlled = True
 
     def reset_control_status(self):
+        """Reset the current control status to inactive."""
         self.currently_controlled = False
 
-    def get_topic_maps(self):
+    def fetch_topics_from(self, source):
+        """Helper to fetch topic lists from source."""
+        return [list(cls.device_topic_map.keys()) for cls in source]
+
+    def get_all_topics(self):
+        """Get all device topics from various sources."""
         topics = []
-        for cls in self.conditional_augments:
-            topics.extend(list(cls.device_topic_map.keys()))
-        for cls in self.conditional_curtailments:
-            topics.extend(list(cls.device_topic_map.keys()))
-        for state, cls in self.device_status.items():
-            topics.extend(list(cls.device_topic_map.keys()))
+        topics.extend(self.fetch_topics_from(self.conditional_augments))
+        topics.extend(self.fetch_topics_from(self.conditional_curtailments))
+        topics.extend(self.fetch_topics_from(self.device_status.values()))
+        topics.extend(self.fetch_topics_from(self.device_release_trigger.values()))
         return topics
 
 
@@ -363,7 +399,7 @@ class ControlSetting(object):
                 point_to_get = self.agent.base_rpc_path(path=load_arg[1])
                 try:
                     # TODO: This should be a get_multiple outside the loop that calls this function or a subscription.
-                   value = self.agent.vip.rpc.call(self.device_actuator, "get_point", point_to_get).get(timeout=30)
+                    value = self.agent.vip.rpc.call(self.device_actuator, "get_point", point_to_get).get(timeout=30)
                 except RemoteError as ex:
                     _log.warning("Failed get point for load calculation {point_to_get} (RemoteError): {str(ex)}")
                     self.control_load = 0.0
@@ -582,6 +618,7 @@ class RampControlSetting(ControlSetting):
         steps = int(abs((self.control_value - self.revert_value) / self.increment_value))
         _log.debug(f"####### IN RAMP RELEASE, GOT {steps} STEPS FROM SELF.REVERT_VALUE: {self.revert_value}, CONTROL_VALUE: {self.control_value}, INCREMENT_VALUE: {self.increment_value}")
         sign = 1 if self.control_value >= self.revert_value else -1
+
         def ramp():
             try:
                 self._ramping_loop(publish_point="Release", steps=steps, sign=sign, start_value=self.control_value)
@@ -593,6 +630,7 @@ class RampControlSetting(ControlSetting):
             except (Exception, gevent.Timeout) as e:
                 _log.warning(f'Exception encountered in Ramp Release:')
                 _log.warning(e)
+
         self.greenlet = gevent.spawn(ramp)
 
     def _actuate(self):
@@ -603,6 +641,7 @@ class RampControlSetting(ControlSetting):
         steps = int(abs((start_value - self.control_value) / self.increment_value))
         _log.debug(f"####### IN RAMP ACTUATE, GOT {steps} STEPS FROM START_VALUE: {start_value}, CONTROL_VALUE: {self.control_value}, INCREMENT_VALUE: {self.increment_value}")
         sign = 1 if start_value >= self.control_value else -1
+
         def ramp():
             try:
                 final = self._ramping_loop(publish_point='Actuate', steps=steps, sign=sign, start_value=start_value)
@@ -612,6 +651,7 @@ class RampControlSetting(ControlSetting):
             except (Exception, gevent.Timeout) as e:
                 _log.warning(f'Exception encountered in Ramp Actuate:')
                 _log.warning(e)
+
         self.greenlet = gevent.spawn(ramp)
 
     def _ramping_loop(self, publish_point, steps, sign, start_value):
