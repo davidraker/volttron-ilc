@@ -897,7 +897,7 @@ class ILCAgent(Agent):
                 _log.debug("Unable to publish average power information.  Input data may not contain metadata.")
             # TODO: Refactor this code block.  Disparate code paths for simulation and real devices is undesireable
             if self.sim_running:
-                gevent.sleep(0.25)
+                gevent.sleep(0.1)
                 self.vip.pubsub.publish("pubsub", "applications/ilc/advance", headers={}, message={})
 
     def check_load(self):
@@ -1162,7 +1162,7 @@ class ILCAgent(Agent):
         self.next_release = None
         self.action_end = None
         self.next_confirm = self.current_time + self.confirm_time
-        self.reset_all_devices()
+        #self.reset_all_devices()
         if self.state == 'inactive':
             _log.debug("**********TRYING TO RELOAD CONFIG PARAMETERS*********")
             if self.config_reload_needed:
