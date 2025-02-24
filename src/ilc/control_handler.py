@@ -266,16 +266,21 @@ class Controls(object):
         """Reset the current control status to inactive."""
         self.currently_controlled = False
 
+    def _get_device_topic_map_keys(self, sources):
+        """Helper method to collect topic map keys from provided sources."""
+        topic_keys = []
+        for source in sources:
+            topic_keys.extend(list(source.device_topic_map.keys()))
+        return topic_keys
+
     def get_topic_maps(self):
         """Get all device topics from various sources."""
-        topics = []
-        for cls in self.conditional_augments:
-            topics.extend(list(cls.device_topic_map.keys()))
-        for cls in self.conditional_curtailments:
-            topics.extend(list(cls.device_topic_map.keys()))
-        for state, cls in self.device_status.items():
-            topics.extend(list(cls.device_topic_map.keys()))
-        return topics
+        augments_topics = self._get_device_topic_map_keys(self.conditional_augments)
+        curtailments_topics = self._get_device_topic_map_keys(self.conditional_curtailments)
+        status_topics = self._get_device_topic_map_keys(self.device_status.values())
+
+        all_topics = augments_topics + curtailments_topics + status_topics
+        return all_topics
 
 
 class ControlManager(object):
