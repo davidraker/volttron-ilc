@@ -266,17 +266,15 @@ class Controls(object):
         """Reset the current control status to inactive."""
         self.currently_controlled = False
 
-    def fetch_topics_from(self, source):
-        """Helper to fetch topic lists from source."""
-        return [list(cls.device_topic_map.keys()) for cls in source]
-
     def get_topic_maps(self):
         """Get all device topics from various sources."""
         topics = []
-        topics.extend(self.fetch_topics_from(self.conditional_augments))
-        topics.extend(self.fetch_topics_from(self.conditional_curtailments))
-        topics.extend(self.fetch_topics_from(self.device_status.values()))
-        topics.extend(self.fetch_topics_from(self.device_release_trigger.values()))
+        for cls in self.conditional_augments:
+            topics.extend(list(cls.device_topic_map.keys()))
+        for cls in self.conditional_curtailments:
+            topics.extend(list(cls.device_topic_map.keys()))
+        for state, cls in self.device_status.items():
+            topics.extend(list(cls.device_topic_map.keys()))
         return topics
 
 
