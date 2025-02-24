@@ -270,7 +270,7 @@ class Controls(object):
         """Helper to fetch topic lists from source."""
         return [list(cls.device_topic_map.keys()) for cls in source]
 
-    def get_all_topics(self):
+    def get_topic_maps(self):
         """Get all device topics from various sources."""
         topics = []
         topics.extend(self.fetch_topics_from(self.conditional_augments))
