@@ -109,7 +109,7 @@ class ControlContainer(object):
 
 
 class DeviceStatus(object):
-    def __init__(self, logging_topic, parent, device_status_args=None, condition="", default_device=""):
+    def __init__(self, logging_topic, parent, device_status_args=None, condition="", default_device="", trigger=False):
         self.current_device_values = {}
         device_status_args = device_status_args if device_status_args else []
 
@@ -124,6 +124,7 @@ class DeviceStatus(object):
         self.default_device = default_device
         self.parent = parent
         self.logging_topic = logging_topic
+        self.trigger = trigger
 
     def ingest_data(self, time_stamp, data):
         for topic, point in self.device_topic_map.items():
@@ -278,8 +279,8 @@ class Controls(object):
         augments_topics = self._get_device_topic_map_keys(self.conditional_augments)
         curtailments_topics = self._get_device_topic_map_keys(self.conditional_curtailments)
         status_topics = self._get_device_topic_map_keys(self.device_status.values())
-
-        all_topics = augments_topics + curtailments_topics + status_topics
+        release_trigger_topics = self._get_device_topic_map_keys(self.device_release_trigger.values())
+        all_topics = augments_topics + curtailments_topics + status_topics + release_trigger_topics
         return all_topics
 
 
