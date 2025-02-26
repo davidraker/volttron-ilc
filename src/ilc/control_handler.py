@@ -229,7 +229,7 @@ class Controls(object):
                 if self.currently_controlled:
                     control_setting = self.get_control_setting(release_state)
                     if control_setting in control_setting.agent.devices:
-                        control_setting.release()
+                        control_setting.release(trigger=True)
                         self.reset_control_status()
                         control_setting.agent.devices.discard(control_setting)
 
@@ -431,13 +431,13 @@ class ControlSetting(object):
         self._actuate()
         return error
 
-    def release(self):
+    def release(self, trigger=False):
         if self.revert_value is None:
             # If we don't have a value to release to. Revert instead.
             result = self.agent.vip.rpc.call(self.device_actuator, "revert_point", "ilc", self.point).get(timeout=30)
             _log.debug("Reverted point: {} - Result: {}".format(self.point, result))
         else:
-            self._actuate(release=True)
+            self._actuate(release=True, trigger=trigger)
 
     # @abc.abstractmethod
     # def _release(self, release=False):
@@ -466,7 +466,7 @@ class ControlSetting(object):
             self.control_value = min(self.maximum, self.control_value)
 
     @abc.abstractmethod
-    def _actuate(self, release=False):
+    def _actuate(self, release=False, **kwargs):
         # Implementations may just call super if this is sufficient, or may override this.
         target_value = self.revert_value if release else self.control_value
         publish_point = 'Release' if release else 'Actuate'
@@ -620,7 +620,7 @@ class RampControlSetting(ControlSetting):
         self.control_value = self.destination_value
         super(RampControlSetting, self)._determine_control_value()
 
-    def _actuate(self, release=False):
+    def _actuate(self, release=False, trigger=False):
         target_value = self.revert_value if release else self.control_value
         publish_point = 'Release' if release else 'Actuate'
         try:
@@ -637,19 +637,21 @@ class RampControlSetting(ControlSetting):
                        f" INCREMENT_VALUE: {self.increment_value}. LAST_LOOP_VALUE WAS: {last_loop_value}")
             sign = 1 if start_value >= target_value else -1
             def ramp():
+                final = None
                 try:
-                    final = self._ramping_loop(publish_point=publish_point, steps=steps, sign=sign, start_value=start_value)
+                    final = self._ramping_loop(publish_point=publish_point, steps=steps, sign=sign,
+                                               start_value=start_value) if not trigger else start_value
                     if release and self.finalize_release_with_revert:
                         # Release with revert_point to cede control.
-                        result = self.agent.vip.rpc.call(self.device_actuator, "revert_point", "ilc", self.point).get(
+                        final = self.agent.vip.rpc.call(self.device_actuator, "revert_point", "ilc", self.point).get(
                             timeout=30)
-                        _log.debug("##### Reverted point: {} - Result: {}".format(self.point, result))
-                    elif final != self.control_value:
-                        self.agent.vip.rpc.call(self.device_actuator, "set_point", "ilc_agent", self.control_point_topic,
-                                                self.control_value).get(timeout=30)
-                except (Exception, gevent.Timeout) as e:
+                        _log.debug("##### Reverted point: {} - Result: {}".format(self.point, final))
+                    elif final != target_value:
+                        final = self.agent.vip.rpc.call(self.device_actuator, "set_point", "ilc_agent",
+                                                        self.control_point_topic, target_value).get(timeout=30)
+                except (Exception, gevent.Timeout) as ex:
                     _log.warning(f'##### Exception encountered in Ramp {publish_point}:')
-                    _log.warning(e)
+                    _log.warning(ex)
                 finally:
                     return final
             self.greenlet = gevent.spawn(ramp)
