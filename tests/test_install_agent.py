@@ -3,8 +3,12 @@ import json
 
 from pathlib import Path
 
-from volttron.client.known_identities import CONFIGURATION_STORE
-
+from importlib.metadata import distribution, PackageNotFoundError
+try:
+    distribution('volttron-core')
+    from volttron.client.known_identities import CONFIGURATION_STORE
+except PackageNotFoundError:
+    from volttron.platform.known_identities import CONFIGURATION_STORE
 
 def test_install_and_start_agent(volttron_instance):
 

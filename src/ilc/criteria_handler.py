@@ -27,13 +27,15 @@ import logging
 
 from collections import deque
 from datetime import timedelta as td
-from importlib.metadata import version
 from sympy.core import numbers
 
-if int(version('volttron').split('.')[0]) >= 10:
+from importlib.metadata import distribution, PackageNotFoundError
+try:
+    distribution('volttron-core')
+    from volttron.client.logs import setup_logging
     from volttron.client.messaging import headers as headers_mod
-    from volttron.utils import setup_logging, get_aware_utc_now, format_timestamp
-else:
+    from volttron.utils import get_aware_utc_now, format_timestamp
+except PackageNotFoundError:
     from volttron.platform.messaging import headers as headers_mod
     from volttron.platform.agent.utils import format_timestamp, get_aware_utc_now, setup_logging
 

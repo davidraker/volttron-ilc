@@ -31,20 +31,20 @@ import time
 
 from datetime import timedelta as td, datetime as dt
 from dateutil import parser
-from importlib.metadata import version
 from transitions import Machine
 from weakref import WeakSet
 # from transitions.extensions import GraphMachine as Machine
 
-if int(version('volttron').split('.')[0]) >= 10:
+from importlib.metadata import distribution, PackageNotFoundError
+try:
+    distribution('volttron-core')
+    from volttron.client.logs import setup_logging
     from volttron.client.vip.agent import Agent, Core
     from volttron.client.messaging import topics, headers as headers_mod
-    from volttron.utils import (
-        format_timestamp, get_aware_utc_now, load_config, parse_timestamp_string, setup_logging, vip_main
-    )
+    from volttron.utils import format_timestamp, get_aware_utc_now, parse_timestamp_string, vip_main
     from volttron.utils.jsonrpc import RemoteError
     from volttron.utils.math_utils import mean
-else:
+except PackageNotFoundError:
     from volttron.platform.vip.agent import Agent, Core
     from volttron.platform.messaging import topics, headers as headers_mod
     from volttron.platform.agent.utils import (

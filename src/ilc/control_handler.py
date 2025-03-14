@@ -26,14 +26,15 @@ import logging
 
 import gevent
 
-from importlib.metadata import version
-
-if int(version('volttron').split('.')[0]) >= 10:
+from importlib.metadata import distribution, PackageNotFoundError
+try:
+    distribution('volttron-core')
+    from volttron.client.logs import setup_logging
     from volttron.client.messaging import headers as headers_mod
     from volttron.client.vip.agent import Agent
-    from volttron.utils import setup_logging, format_timestamp, get_aware_utc_now
+    from volttron.utils import format_timestamp, get_aware_utc_now
     from volttron.utils.jsonrpc import RemoteError
-else:
+except PackageNotFoundError:
     from volttron.platform.vip.agent import Agent
     from volttron.platform.messaging import headers as headers_mod
     from volttron.platform.agent.utils import format_timestamp, get_aware_utc_now, setup_logging

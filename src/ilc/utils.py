@@ -24,6 +24,7 @@
 
 import re
 import logging
+
 from typing import ItemsView, List, Set, Dict, Tuple, Union
 from sympy.parsing.sympy_parser import parse_expr
 from sympy.logic.boolalg import Boolean
@@ -72,7 +73,9 @@ def sympy_evaluate(condition: str, points: Union[List[Tuple[str, float]], ItemsV
     _log.debug(f"Sympy debug points: {points} -- {cleaned_points}")
     equation = parse_expr(cleaned_condition)
     return_value = equation.subs(cleaned_points)
-    if isinstance(return_value, Boolean):
+    if return_value.is_infinite:
+        return 0.0
+    elif isinstance(return_value, Boolean):
         return bool(return_value)
     else:
         return float(return_value)
