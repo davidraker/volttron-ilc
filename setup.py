@@ -29,7 +29,7 @@ __version__ = _temp.__version__
 setup(
     name=f"{agent_package}agent",
     version=__version__,
-    install_requires=["volttron", "sympy", "transitions"],
+    install_requires=["volttron", "sympy", "transitions", "numpy"],
     packages=packages,
     package_dir={'': 'src'},
     entry_points={"setuptools.installation": [f"eggsecutable = {agent_module}:main"]},
