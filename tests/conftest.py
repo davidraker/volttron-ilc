@@ -1,6 +1,7 @@
 """Tests suite for `volttron-ilc`."""
 import sys
 
+from volttrontesting.fixtures import get_pyproject_toml
 from volttrontesting.fixtures.volttron_platform_fixtures import *
 
 
