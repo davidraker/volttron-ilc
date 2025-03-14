@@ -1,5 +1,7 @@
 import numpy as np
 
+from scipy.optimize import linprog
+
 from ilc.fucom import fucom
 
 # TODO: This code runs the scenarios from the FUCOM paper. Make them into a test.
@@ -16,7 +18,7 @@ rhs_ineq = [0, 0, 0, 0, 0]
 lhs_eq = [[0, 1, 1, 1, 1]]
 rhs_eq = [1]
 bnd = [(0, float('inf')), (0, 1), (0, 1), (0, 1), (0, 1)]
-opt = np.linprog(c=obj, A_ub=lhs_ineq, b_ub=rhs_ineq, A_eq=lhs_eq, b_eq=rhs_eq, bounds=bnd,
+opt = linprog(c=obj, A_ub=lhs_ineq, b_ub=rhs_ineq, A_eq=lhs_eq, b_eq=rhs_eq, bounds=bnd,
               method='revised simplex')
 print("lhs_ineq")
 print(lhs_ineq)
@@ -52,7 +54,7 @@ rhs_ineq2 = [0, 0, 0, 0, 0, 0, 0]
 lhs_eq2 = [[0, 1, 1, 1, 1, 1]]
 rhs_eq2 = [1]
 bnd2 = [(0, float('inf')), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)]
-opt2 = np.linprog(c=obj2, A_ub=lhs_ineq2, b_ub=rhs_ineq2, A_eq=lhs_eq2, b_eq=rhs_eq2, bounds=bnd2,
+opt2 = linprog(c=obj2, A_ub=lhs_ineq2, b_ub=rhs_ineq2, A_eq=lhs_eq2, b_eq=rhs_eq2, bounds=bnd2,
               method='revised simplex')
 print("lhs_ineq")
 print(lhs_ineq2)
