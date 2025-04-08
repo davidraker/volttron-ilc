@@ -29,7 +29,12 @@ import operator
 from collections import defaultdict
 from functools import reduce
 
-from volttron.utils import load_config, setup_logging
+from importlib.metadata import distribution, PackageNotFoundError
+try:
+    distribution('volttron-core')
+    from volttron.client.logs import setup_logging
+except PackageNotFoundError:
+    from volttron.platform.agent.utils import setup_logging
 
 setup_logging()
 _log = logging.getLogger(__name__)

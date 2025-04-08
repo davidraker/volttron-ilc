@@ -14,7 +14,7 @@
             },
             "curtail_settings": {
                 "point": "ZoneTemperatureSetPoint",
-                "curtailment_method": "offset",
+                "curtailment_method": "offset", #// TODO: Should this key be "control_method"?
                 "offset": 2.0,
                 "load": 6.0
             },
