@@ -39,13 +39,13 @@ from importlib.metadata import distribution, PackageNotFoundError
 try:
     distribution('volttron-core')
     from volttron.client.logs import setup_logging
-    from volttron.client.vip.agent import Agent, Core
+    from volttron.client.vip.agent import Agent, Core, RPC
     from volttron.client.messaging import topics, headers as headers_mod
     from volttron.utils import format_timestamp, get_aware_utc_now, parse_timestamp_string, vip_main
     from volttron.utils.jsonrpc import RemoteError
     from volttron.utils.math_utils import mean
 except PackageNotFoundError:
-    from volttron.platform.vip.agent import Agent, Core
+    from volttron.platform.vip.agent import Agent, Core, RPC
     from volttron.platform.messaging import topics, headers as headers_mod
     from volttron.platform.agent.utils import (
         format_timestamp, get_aware_utc_now, load_config, parse_timestamp_string, setup_logging, vip_main
@@ -295,6 +295,24 @@ class ILCAgent(Agent):
                 # self.new_config = self.default_config.copy()
                 self.saved_config = self.default_config.copy()
                 self.saved_config.update(contents)
+
+    @RPC.export
+    def update_configurations(self, data):
+        """
+        Update configuration for ILC via RPC.
+        :param data: dictionary of all ILC configurations.
+        :type data: Dict[Dict]
+        :return: None
+        """
+        try:
+            config = data.pop('config')
+        except KeyError as ex:
+            config = {}
+            _log.debug(f'Cannot remotely update configurations!  Main config is not in payload!: {ex}')
+        for name, data in data.items():
+            self.vip.config.set(name, data)
+        self.vip.config.set('config', config, send_update=True, trigger_callback=True)
+        return True
 
     def reset_parameters(self, config=None):
         """
