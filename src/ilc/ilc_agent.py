@@ -275,6 +275,7 @@ class ILCAgent(Agent):
         self.need_actuator_schedule = False
         self.demand_threshold = 5.0
         self.sim_running = False
+        self.sim_advance_topic = "applications/ilc/advance"
         self.demand_expr = None
         self.demand_args = None
         self.calculate_demand = False
@@ -444,6 +445,7 @@ class ILCAgent(Agent):
         self.need_actuator_schedule = config.get("need_actuator_schedule", self.need_actuator_schedule)
         self.demand_threshold = config.get("demand_threshold", self.demand_threshold)
         self.sim_running = config.get("simulation_running", self.sim_running)
+        self.sim_advance_topic = config.get("sim_advance_topic", self.sim_advance_topic)
         self.starting_base('core')
         self.config_reload_needed = False
 
@@ -915,8 +917,8 @@ class ILCAgent(Agent):
                 _log.debug("Unable to publish average power information.  Input data may not contain metadata.")
             # TODO: Refactor this code block.  Disparate code paths for simulation and real devices is undesireable
             if self.sim_running:
-                gevent.sleep(0.1)
-                self.vip.pubsub.publish("pubsub", "applications/ilc/advance", headers={}, message={})
+                gevent.sleep(0.01)
+                self.vip.pubsub.publish("pubsub", self.sim_advance_topic, headers={}, message={})
 
     def check_load(self):
         """
